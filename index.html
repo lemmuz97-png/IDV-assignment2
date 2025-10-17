@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SVG Transformations — corrected</title>
+<style>
+  :root{
+    --cell-size: 110px;
+  }
+
+  body{
+    font-family: Arial, Helvetica, sans-serif;
+    margin:20px;
+    background:#ffffff; /* pure white */
+    color:#111;
+  }
+
+  table { width:100%; border-collapse:collapse; margin-top:16px; table-layout:fixed; }
+  th, td { border:1px solid #ddd; padding:8px; text-align:center; vertical-align:middle; }
+  thead th { background:#f2f2f2; font-weight:600; }
+
+  /* container that holds svg; use flexbox to center svg inside it */
+  .svg-container{
+    width: var(--cell-size);
+    height: var(--cell-size);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:auto;
+    background:white;           /* ensure container stays white */
+    box-sizing:border-box;
+    overflow:hidden;            /* prevent overflow when transforms occur */
+    border-radius:6px;
+    border:1px solid rgba(0,0,0,0.03);
+  }
+
+  /* Default svg sizing and transform origin.
+     transform-box is required in some browsers to make transform-origin behave as expected for SVGs. */
+  .svg-container svg{
+    width:100%;
+    height:100%;
+    display:block;
+    transform-origin:center center;
+    transform-box: fill-box; /* important for SVG transforms */
+    transition: transform .18s ease, filter .18s ease;
+  }
+
+  /* Effects applied to the svg element itself (more reliable) */
+  .mirrored svg { transform: scaleX(-1); }
+  .rotated svg  { transform: rotate(180deg); }
+  /* stronger squeeze so it's visually obvious; adjust (0.30–0.45) to taste */
+  .squeezed svg { transform: scaleY(0.35); }
+  .grayscale svg{ filter: grayscale(100%); }
+
+  /* label for squeezed (optional) */
+  .effect-label {
+    margin-top:6px;
+    font-size:11px;
+    color:#c62828; /* red */
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.4px;
+  }
+
+  @media (max-width:760px){
+    :root{ --cell-size: 86px; }
+  }
+</style>
+</head>
+<body>
+  <h1>SVG Transformations Gallery — corrected</h1>
+  <p>Notes: use a small local server (or GitHub Pages) when testing — direct file access (`file://`) may block the fetch() calls.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Original</th><th>Mirrored</th><th>Rotated 180°</th><th>Vertically squeezed</th><th>Grayscale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- sample single row -->
+      <tr>
+        <td><div class="svg-container" id="svg1-original"></div></td>
+        <td><div class="svg-container mirrored" id="svg1-mirrored"></div></td>
+        <td><div class="svg-container rotated" id="svg1-rotated"></div></td>
+        <td>
+          <div>
+            <div class="svg-container squeezed" id="svg1-squeezed"></div>
+            <div class="effect-label" style="text-align:center">SQUEEZED</div>
+          </div>
+        </td>
+        <td><div class="svg-container grayscale" id="svg1-grayscale"></div></td>
+      </tr>
+
+      <!-- Repeat rows as needed (I left your HTML structure intact) -->
+      <!-- ... -->
+    </tbody>
+  </table>
+
+<script>
+/*
+  Important:
+  - Replace the svgPaths array with your real file paths.
+  - If you open index.html directly (file://) fetch() may be blocked; run a simple local server:
+      npx http-server
+    or
+      python -m http.server 8000
+    then open http://localhost:8080 (or 8000).
+*/
+
+const svgPaths = [
+  'svgs/01_pizza_slice.svg',
+  'svgs/02_burger.svg',
+  'svgs/03_sushi.svg',
+  'svgs/04_apple.svg',
+  'svgs/05_banana.svg',
+  'svgs/06_croissant.svg',
+  'svgs/07_icecream.svg',
+  'svgs/08_salad.svg',
+  'svgs/09_donut.svg',
+  'svgs/10_coffee.svg'
+];
+
+// Helper to load an svg file and insert into a container
+async function loadSVGInto(url, containerId) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const svgText = await res.text();
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Insert the SVG markup (becomes part of page DOM)
+    container.innerHTML = svgText;
+
+    // Grab the inserted SVG element and normalize its attributes for consistent behavior
+    const svgEl = container.querySelector('svg');
+    if (svgEl) {
+      svgEl.setAttribute('width', '100%');
+      svgEl.setAttribute('height', '100%');
+      svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+      // Some SVGs may have a rect background; if not, ensure background is white
+      // (we set container background white above, but if you need the white inside the svg, uncomment:)
+      // if (!svgEl.querySelector('rect')) {
+      //   const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      //   rect.setAttribute('width','100%');
+      //   rect.setAttribute('height','100%');
+      //   rect.setAttribute('fill','#ffffff');
+      //   svgEl.insertBefore(rect, svgEl.firstChild);
+      // }
+    }
+  } catch (err) {
+    console.error('Failed to load SVG', url, err);
+    // show a small fallback message
+    const container = document.getElementById(containerId);
+    if (container) container.innerHTML = '<div style="font-size:11px;color:#999">SVG load error</div>';
+  }
+}
+
+// Fill a row of 5 containers for one svg index
+function fillRowForSvg(path, index) {
+  const base = index + 1;
+  loadSVGInto(path, `svg${base}-original`);
+  loadSVGInto(path, `svg${base}-mirrored`);
+  loadSVGInto(path, `svg${base}-rotated`);
+  loadSVGInto(path, `svg${base}-squeezed`);
+  loadSVGInto(path, `svg${base}-grayscale`);
+}
+
+// Ensure container elements exist before attempting to load
+document.addEventListener('DOMContentLoaded', () => {
+  // Check there are enough container elements in the page
+  // If you have 10 rows in HTML keep this loop; otherwise adapt to your rendered rows.
+  for (let i = 0; i < svgPaths.length; i++) {
+    fillRowForSvg(svgPaths[i], i);
+  }
+});
+</script>
+</body>
+</html>
