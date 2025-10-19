@@ -1,113 +1,125 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<title>SVG Transformations from Repository</title>
-<style>
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 20px;
-  }
-  th, td {
-    border: 1px solid black;
-    padding: 10px;
-    text-align: center;
-  }
-  .svg-container {
-    width: 50px; /* Standardize display size */
-    height: 50px;
-    display: flex; /* Use flexbox for centering if needed */
-    justify-content: center;
-    align-items: center;
-  }
-  /* Specific transformations for each column */
-  .mirrored {
-    transform: scaleX(-1);
-  }
-  .rotated {
-    transform: rotate(180deg);
-  }
-  .squeezed {
-    transform: scaleY(0.5);
-  }
-  .grayscale {
-    filter: grayscale(100%);
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SVG Effects — 10×5 Gallery</title>
+  <style>
+    :root{
+      --thumb-w: 160px;
+      --thumb-h: 160px;
+      --gap: 12px;
+      --border: 1px solid #ddd;
+      --bg: #fafafa;
+      --accent: #0b69ff;
+    }
+    body{font-family: Inter, Roboto, system-ui, -apple-system, sans-serif;margin:24px;background:var(--bg);color:#111}
+    h1{font-size:20px;margin:0 0 8px}
+    p.small{color:#444;margin:0 0 18px;font-size:14px}
 
-  /* The actual object tag will be inside a container */
-  .svg-container object {
-    width: 100%;
-    height: 100%;
-  }
-</style>
+    table.gallery{border-collapse:collapse;width:100%;max-width:1200px;background:white;box-shadow:0 6px 18px rgba(20,20,20,0.06)}
+    table.gallery thead th{position:sticky;top:0;background:#fff;padding:10px;border-bottom:var(--border);text-align:center;font-weight:600}
+    table.gallery td{padding:10px;text-align:center;border-bottom:var(--border);vertical-align:middle}
+    .thumb{
+      width:var(--thumb-w);
+      height:var(--thumb-h);
+      display:inline-block;
+      object-fit:contain;
+      border-radius:8px;
+      box-shadow:0 4px 8px rgba(15,15,15,0.06);
+      background:linear-gradient(180deg, #fff, #f7f9ff);
+      padding:8px;
+      border:1px solid #eee;
+    }
+
+    /* effects - each applied individually */
+    .mirror{transform:scaleX(-1);}         /* left-right mirrored */
+    .rot180{transform:rotate(180deg);}      /* rotated 180 degrees */
+    .squeezeY{transform:scaleY(0.5);}      /* vertically squeezed by 50% */
+    .grayscale{filter:grayscale(100%);}    /* grayscale */
+
+    /* keep transforms and filters smooth and isolated per element */
+    .thumb{transition:transform .25s ease, filter .25s ease}
+
+    /* labels under thumbnails */
+    .cell-label{font-size:12px;color:#333;margin-top:8px}
+
+    /* responsive tweak */
+    @media (max-width:900px){
+      :root{--thumb-w:120px;--thumb-h:120px}
+    }
+    @media (max-width:520px){
+      table.gallery thead th:nth-child(n+3){display:none}
+      table.gallery td:nth-child(n+3){display:none}
+    }
+  </style>
 </head>
 <body>
+  <h1>SVG Effects — 10 files × 5 effects</h1>
+  <p class="small">This page reads local SVG files named <code>svg1.svg</code> .. <code>svg10.svg</code> located in a <code>svgs/</code> folder at the repository root. Each row shows: Original, Mirrored (left-right), Rotated 180°, Vertically squeezed (50%), Grayscale.</p>
 
-<h1>SVG Transformations Table</h1>
+  <table class="gallery" id="gallery" aria-describedby="desc">
+    <thead>
+      <tr>
+        <th>Original</th>
+        <th>Mirrored</th>
+        <th>Rotated 180°</th>
+        <th>Vertically Squeezed (50%)</th>
+        <th>Grayscale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- rows injected by script -->
+    </tbody>
+  </table>
 
-<table>
-  <thead>
-    <tr>
-      <th>Original</th>
-      <th>Left-Right Mirrored</th>
-      <th>Rotated 180°</th>
-      <th>Vertically Squeezed (50%)</th>
-      <th>Grayscale</th>
-    </tr>
-  </thead>
-  <tbody>
-    <script>
-      // JavaScript to generate table rows dynamically
-      const tableBody = document.querySelector('tbody');
-      for (let i = 1; i <= 10; i++) {
-        const row = document.createElement('tr');
-        const svgPath = `svgs/svg${i}.svg`; // Construct path to SVG file
+  <script>
+    // Configuration: update this array only if your files are named differently or in another folder
+    const svgFolder = 'svgs'; // relative folder where svg1.svg ... svg10.svg live
+    const files = Array.from({length:10}, (_,i)=>`svg${i+1}.svg`);
 
-        // Original
-        let cell = document.createElement('td');
-        let container = document.createElement('div');
-        container.classList.add('svg-container');
-        container.innerHTML = `<object data="${svgPath}" type="image/svg+xml"></object>`;
-        cell.appendChild(container);
-        row.appendChild(cell);
+    const tbody = document.querySelector('#gallery tbody');
 
-        // Left-Right Mirrored
-        cell = document.createElement('td');
-        container = document.createElement('div');
-        container.classList.add('svg-container', 'mirrored');
-        container.innerHTML = `<object data="${svgPath}" type="image/svg+xml"></object>`;
-        cell.appendChild(container);
-        row.appendChild(cell);
+    function makeCell(src, className, alt){
+      const td = document.createElement('td');
 
-        // Rotated 180°
-        cell = document.createElement('td');
-        container = document.createElement('div');
-        container.classList.add('svg-container', 'rotated');
-        container.innerHTML = `<object data="${svgPath}" type="image/svg+xml"></object>`;
-        cell.appendChild(container);
-        row.appendChild(cell);
+      // Use <img> to keep things simple and reliable across GitHub Pages.
+      const img = document.createElement('img');
+      img.className = 'thumb ' + (className||'');
+      img.src = `${svgFolder}/${src}`;
+      img.alt = alt || src;
+      img.loading = 'lazy';
+      img.decoding = 'async';
 
-        // Vertically Squeezed (50%)
-        cell = document.createElement('td');
-        container = document.createElement('div');
-        container.classList.add('svg-container', 'squeezed');
-        container.innerHTML = `<object data="${svgPath}" type="image/svg+xml"></object>`;
-        cell.appendChild(container);
-        row.appendChild(cell);
+      const label = document.createElement('div');
+      label.className = 'cell-label';
+      label.textContent = alt || src;
 
-        // Grayscale
-        cell = document.createElement('td');
-        container = document.createElement('div');
-        container.classList.add('svg-container', 'grayscale');
-        container.innerHTML = `<object data="${svgPath}" type="image/svg+xml"></object>`;
-        cell.appendChild(container);
-        row.appendChild(cell);
+      td.appendChild(img);
+      td.appendChild(label);
+      return td;
+    }
 
-        tableBody.appendChild(row);
-      }
-    </script>
-  </tbody>
-</table>
+    files.forEach(filename => {
+      const tr = document.createElement('tr');
 
+      // Original
+      tr.appendChild(makeCell(filename, '', 'Original'));
+
+      // Mirrored (left-right). Only this transform is applied — no filters.
+      tr.appendChild(makeCell(filename, 'mirror', 'Mirrored'));
+
+      // Rotated 180
+      tr.appendChild(makeCell(filename, 'rot180', 'Rotated 180'));
+
+      // Vertically squeezed by 50% (scaleY(0.5))
+      tr.appendChild(makeCell(filename, 'squeezeY', 'Squeezed Y 50%'));
+
+      // Grayscale filter
+      tr.appendChild(makeCell(filename, 'grayscale', 'Grayscale'));
+
+      tbody.appendChild(tr);
+    });
+  </script>
 </body>
 </html>
